@@ -4,5 +4,10 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "scripts": {
+    "dev:marketing": "bun run --filter=@orrery/marketing dev",
+    "dev:docs": "bun run --filter=@orrery/docs dev",
+    "build": "bun run --filter='*' build"
+  }
 }
