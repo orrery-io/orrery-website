@@ -1,0 +1,8 @@
+{
+  "name": "orrery-website",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}
