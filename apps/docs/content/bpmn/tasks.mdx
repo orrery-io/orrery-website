@@ -1,0 +1,49 @@
+# Tasks
+
+Tasks are the primary units of work in a BPMN process.
+
+## Service Task
+
+A service task delegates work to an external worker process. Workers subscribe by **topic** and use long-polling to fetch tasks.
+
+```xml
+<serviceTask id="validatePayment" name="Validate Payment"
+  activiti:type="external"
+  activiti:topic="validatePayment" />
+```
+
+**Behavior:**
+- When reached, the instance enters `WaitingForTask` state
+- Workers fetch tasks via `GET /api/external-tasks?topic=validatePayment`
+- Worker completes task via `POST /api/external-tasks/{id}/complete`
+
+## Script Task
+
+A script task executes an inline script using the [Rhai](https://rhai.rs) scripting engine.
+
+```xml
+<scriptTask id="calcTotal" name="Calculate Total" scriptFormat="rhai">
+  <script>
+    variables.total = variables.price * variables.quantity;
+  </script>
+</scriptTask>
+```
+
+**Behavior:** Executes synchronously and continues immediately.
+
+## Multi-Instance Task
+
+A multi-instance task loops over a collection, executing the task for each item.
+
+```xml
+<serviceTask id="processItem">
+  <multiInstanceLoopCharacteristics
+    isSequential="false"
+    activiti:collection="${items}"
+    activiti:elementVariable="item" />
+</serviceTask>
+```
+
+**Modes:**
+- `isSequential="false"` — parallel (all items at once)
+- `isSequential="true"` — sequential (one at a time)

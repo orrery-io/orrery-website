@@ -1,0 +1,28 @@
+# Rust SDK
+
+The Rust SDK provides a native HTTP client for the Orrery API.
+
+## Installation
+
+```toml
+[dependencies]
+orrery-client = { git = "https://github.com/orrery-io/orrery" }
+```
+
+## Usage
+
+```rust
+use orrery_client::OrreryClient;
+
+#[tokio::main]
+async fn main() {
+    let client = OrreryClient::new("http://localhost:8080");
+
+    let instance = client
+        .start_instance("myProcess", serde_json::json!({ "orderId": "123" }))
+        .await
+        .unwrap();
+}
+```
+
+> **Source:** `crates/orrery-client/` in the main repository.

@@ -1,0 +1,42 @@
+# TypeScript SDK
+
+The TypeScript SDK provides a client and worker abstraction for Node.js.
+
+## Installation
+
+```bash
+bun add @orrery/sdk
+```
+
+## Client
+
+```ts
+import { OrreryClient } from "@orrery/sdk";
+
+const client = new OrreryClient({ baseUrl: "http://localhost:8080" });
+
+// Start a process instance
+const instance = await client.startInstance({
+  processDefinitionKey: "myProcess",
+  variables: { orderId: "123" },
+});
+```
+
+## Worker
+
+```ts
+import { OrreryWorker } from "@orrery/sdk";
+
+const worker = new OrreryWorker({
+  baseUrl: "http://localhost:8080",
+  topic: "myServiceTask",
+  handler: async (task) => {
+    // do work
+    await task.complete({ result: "ok" });
+  },
+});
+
+worker.start();
+```
+
+> **Source:** `sdks/typescript/` in the main repository.
