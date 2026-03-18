@@ -6,7 +6,7 @@ const withNextra = nextra({
 
 export default withNextra({
   env: {
-    MARKETING_URL: process.env.NEXT_PUBLIC_MARKETING_URL ?? "http://localhost:3000",
+    MARKETING_URL: process.env.NEXT_PUBLIC_MARKETING_URL ?? "http://localhost:3005",
     GITHUB_URL: process.env.NEXT_PUBLIC_GITHUB_URL ?? "https://github.com/orrery-io/orrery",
   },
   turbopack: {

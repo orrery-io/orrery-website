@@ -6,8 +6,12 @@
     "packages/*"
   ],
   "scripts": {
+    "dev": "bun run --filter=@orrery/marketing dev & bun run --filter=@orrery/docs dev",
     "dev:marketing": "bun run --filter=@orrery/marketing dev",
     "dev:docs": "bun run --filter=@orrery/docs dev",
     "build": "bun run --filter='*' build"
+  },
+  "devDependencies": {
+    "pagefind": "^1.4.0"
   }
 }
