@@ -1,0 +1,43 @@
+# Receive Task
+
+export const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             xmlns:activiti="http://activiti.org/bpmn"
+             targetNamespace="http://example.org/bpmn">
+  <message id="ApprovalMsg" name="approval.received" />
+  <process id="proc" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="createOrder" />
+    <serviceTask id="createOrder" name="Create Order"
+      activiti:type="external" activiti:topic="createOrder" />
+    <sequenceFlow id="f2" sourceRef="createOrder" targetRef="waitApproval" />
+    <receiveTask id="waitApproval" name="Wait for Approval" messageRef="ApprovalMsg" />
+    <sequenceFlow id="f3" sourceRef="waitApproval" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane bpmnElement="proc">
+      <bpmndi:BPMNShape bpmnElement="start"><dc:Bounds x="132" y="97" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="createOrder"><dc:Bounds x="220" y="75" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="waitApproval"><dc:Bounds x="392" y="75" width="130" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="end"><dc:Bounds x="574" y="97" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="f1"><di:waypoint x="168" y="115" /><di:waypoint x="220" y="115" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f2"><di:waypoint x="340" y="115" /><di:waypoint x="392" y="115" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f3"><di:waypoint x="522" y="115" /><di:waypoint x="574" y="115" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>`;
+
+<BpmnViewer xml={xml} height={220} />
+
+A receive task waits for a named message — identical in behavior to a [message intermediate catch event](/bpmn/events/messages#message-intermediate-catch-event), but rendered as a task shape in the diagram.
+
+```xml
+<receiveTask id="waitForApproval" name="Wait for Approval"
+  messageRef="ApprovalMessage" />
+```
+
+See [message correlation](/bpmn/events/messages#message-correlation) for the full matching algorithm.

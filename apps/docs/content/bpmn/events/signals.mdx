@@ -1,0 +1,75 @@
+# Signals
+
+Signals are broadcast to **all** instances waiting on a matching signal reference — unlike messages, which target a single instance.
+
+export const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             xmlns:activiti="http://activiti.org/bpmn"
+             targetNamespace="http://example.org/bpmn">
+  <signal id="ShutdownSig" name="system.shutdown" />
+  <process id="proc" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="work" />
+    <serviceTask id="work" name="Do Work"
+      activiti:type="external" activiti:topic="doWork" />
+    <sequenceFlow id="f2" sourceRef="work" targetRef="waitSignal" />
+    <intermediateCatchEvent id="waitSignal" name="System Shutdown">
+      <signalEventDefinition signalRef="ShutdownSig" />
+    </intermediateCatchEvent>
+    <sequenceFlow id="f3" sourceRef="waitSignal" targetRef="cleanup" />
+    <serviceTask id="cleanup" name="Cleanup"
+      activiti:type="external" activiti:topic="cleanup" />
+    <sequenceFlow id="f4" sourceRef="cleanup" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane bpmnElement="proc">
+      <bpmndi:BPMNShape bpmnElement="start"><dc:Bounds x="112" y="97" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="work"><dc:Bounds x="200" y="75" width="110" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="waitSignal"><dc:Bounds x="362" y="97" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="338" y="138" width="84" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="cleanup"><dc:Bounds x="450" y="75" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="end"><dc:Bounds x="602" y="97" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="f1"><di:waypoint x="148" y="115" /><di:waypoint x="200" y="115" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f2"><di:waypoint x="310" y="115" /><di:waypoint x="362" y="115" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f3"><di:waypoint x="398" y="115" /><di:waypoint x="450" y="115" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f4"><di:waypoint x="550" y="115" /><di:waypoint x="602" y="115" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>`;
+
+<BpmnViewer xml={xml} height={220} />
+
+```xml
+<intermediateCatchEvent id="waitForShutdown">
+  <signalEventDefinition signalRef="SystemShutdown" />
+</intermediateCatchEvent>
+```
+
+## Broadcasting a signal
+
+```bash
+curl -X POST http://localhost:8080/api/signals \
+  -H "Content-Type: application/json" \
+  -d '{
+    "signalName": "system.shutdown",
+    "variables": { "reason": "maintenance" }
+  }'
+```
+
+All instances with an active subscription for `system.shutdown` are woken simultaneously. The response includes the count of woken instances and new instances created via signal start events.
+
+## Delivery tiers
+
+Signal broadcast follows the same 4-tier dispatch as messages but without correlation key filtering:
+
+1. **Signal boundary subscriptions** — all instances with matching boundary events
+2. **Intermediate signal catch subscriptions** — all waiting catch events
+3. **Signal start definitions** — creates new instances for each matching start event
+4. **Event subprocess subscriptions** — triggers signal ESPs in all matching instances
+
+## No correlation
+
+Signals have no correlation mechanism. Every instance waiting on the signal reference receives the broadcast. Use messages when you need to target a specific instance.
