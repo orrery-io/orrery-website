@@ -5,3 +5,7 @@ dist/
 .env*.local
 .vercel/
 *.tsbuildinfo
+CLAUDE.md
+public/_pagefind
+docs/
+memory/
