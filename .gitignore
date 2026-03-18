@@ -7,5 +7,5 @@ dist/
 *.tsbuildinfo
 CLAUDE.md
 public/_pagefind
-docs/
+/docs/
 memory/
