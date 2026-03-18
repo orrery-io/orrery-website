@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "Orrery — Open Source BPMN Workflow Engine",
   description:
     "Self-hosted, open source BPMN 2.0 workflow orchestration engine built in Rust.",
+  icons: { icon: "/favicon.svg" },
   openGraph: {
     title: "Orrery",
     description: "Self-hosted BPMN workflow engine in Rust.",
