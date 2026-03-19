@@ -8,7 +8,7 @@ import "nextra-theme-docs/style.css";
 const GITHUB_URL = process.env.GITHUB_URL!;
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const pageMap = await getPageMap();
+  const pageMap = await getPageMap("/documentation");
 
   return (
     <html lang="en" suppressHydrationWarning>
