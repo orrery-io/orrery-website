@@ -6,7 +6,13 @@ const withNextra = nextra({
 
 export default withNextra({
   env: {
-    SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+    SITE_URL:
+      process.env.NEXT_PUBLIC_SITE_URL ??
+      (process.env.VERCEL_PROJECT_PRODUCTION_URL
+        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+        : process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : "http://localhost:3000"),
     DOCS_URL: process.env.NEXT_PUBLIC_DOCS_URL ?? "/documentation",
     GITHUB_URL:
       process.env.NEXT_PUBLIC_GITHUB_URL ??
