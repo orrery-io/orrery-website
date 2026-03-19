@@ -1,0 +1,75 @@
+# Script Task
+
+export const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             targetNamespace="http://example.org/bpmn">
+  <process id="proc" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="calcTotal" />
+    <scriptTask id="calcTotal" name="Calculate Total" scriptFormat="rhai">
+      <script>variables.total = variables.price * variables.quantity;</script>
+    </scriptTask>
+    <sequenceFlow id="f2" sourceRef="calcTotal" targetRef="notify" />
+    <scriptTask id="notify" name="Format Message" scriptFormat="rhai">
+      <script>variables.message = "Order total: " + variables.total;</script>
+    </scriptTask>
+    <sequenceFlow id="f3" sourceRef="notify" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane bpmnElement="proc">
+      <bpmndi:BPMNShape bpmnElement="start"><dc:Bounds x="132" y="97" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="calcTotal"><dc:Bounds x="220" y="75" width="130" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="notify"><dc:Bounds x="402" y="75" width="130" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="end"><dc:Bounds x="584" y="97" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="f1"><di:waypoint x="168" y="115" /><di:waypoint x="220" y="115" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f2"><di:waypoint x="350" y="115" /><di:waypoint x="402" y="115" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f3"><di:waypoint x="532" y="115" /><di:waypoint x="584" y="115" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>`;
+
+<BpmnViewer xml={xml} height={220} />
+
+A script task executes an inline script synchronously using the [Rhai](https://rhai.rs) scripting engine.
+
+```xml
+<scriptTask id="calcTotal" name="Calculate Total" scriptFormat="rhai">
+  <script>
+    variables.total = variables.price * variables.quantity;
+  </script>
+</scriptTask>
+```
+
+## Execution behavior
+
+The script runs **before the engine advances past the element** and completes immediately — no waiting state is entered.
+
+Inside the script the `variables` map is available for both reading and writing:
+
+```rhai
+let price = variables["price"];
+variables["discount"] = if price > 100.0 { 0.1 } else { 0.0 };
+variables["total"] = price * (1.0 - variables["discount"]);
+```
+
+All writes to `variables` are persisted to the instance variable scope after the script completes.
+
+## `resultVariable`
+
+Set `activiti:resultVariable` to capture the script's return value into a named variable:
+
+```xml
+<scriptTask id="greet" scriptFormat="rhai" activiti:resultVariable="greeting">
+  <script>"Hello, " + variables["name"]</script>
+</scriptTask>
+```
+
+The last evaluated expression in the script is stored under the specified variable name.
+
+## Error handling
+
+If the script throws a runtime error the instance transitions to `Failed`. Attach a **boundary error event** to the script task to catch and redirect on failure.

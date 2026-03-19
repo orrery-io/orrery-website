@@ -1,0 +1,72 @@
+# Inclusive Gateway (OR)
+
+**Fork:** Activates all outgoing paths whose condition evaluates to `true`.
+**Join:** Waits for the number of branches actually activated at the corresponding fork.
+
+export const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             targetNamespace="http://example.org/bpmn">
+  <process id="proc" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="forkGw" />
+    <inclusiveGateway id="forkGw" name="Route?" />
+    <sequenceFlow id="f2" sourceRef="forkGw" targetRef="taskEmail">
+      <conditionExpression>\${notifyEmail}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="f3" sourceRef="forkGw" targetRef="taskSms">
+      <conditionExpression>\${notifySms}</conditionExpression>
+    </sequenceFlow>
+    <task id="taskEmail" name="Send Email" />
+    <task id="taskSms" name="Send SMS" />
+    <sequenceFlow id="f4" sourceRef="taskEmail" targetRef="joinGw" />
+    <sequenceFlow id="f5" sourceRef="taskSms" targetRef="joinGw" />
+    <inclusiveGateway id="joinGw" name="Done?" />
+    <sequenceFlow id="f6" sourceRef="joinGw" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane bpmnElement="proc">
+      <bpmndi:BPMNShape bpmnElement="start"><dc:Bounds x="152" y="112" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="forkGw"><dc:Bounds x="245" y="105" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="246" y="160" width="48" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="taskEmail"><dc:Bounds x="355" y="70" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="taskSms"><dc:Bounds x="355" y="190" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="joinGw"><dc:Bounds x="515" y="105" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="519" y="160" width="42" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="end"><dc:Bounds x="622" y="112" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="f1"><di:waypoint x="188" y="130" /><di:waypoint x="245" y="130" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f2"><di:waypoint x="270" y="105" /><di:waypoint x="270" y="110" /><di:waypoint x="355" y="110" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f3"><di:waypoint x="270" y="155" /><di:waypoint x="270" y="230" /><di:waypoint x="355" y="230" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f4"><di:waypoint x="455" y="110" /><di:waypoint x="515" y="130" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f5"><di:waypoint x="455" y="230" /><di:waypoint x="515" y="130" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f6"><di:waypoint x="565" y="130" /><di:waypoint x="622" y="130" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>`;
+
+<BpmnViewer xml={xml} height={300} />
+
+```xml
+<inclusiveGateway id="routeOrder" />
+<sequenceFlow sourceRef="routeOrder" targetRef="sendEmail">
+  <conditionExpression>${notifyByEmail} == true</conditionExpression>
+</sequenceFlow>
+<sequenceFlow sourceRef="routeOrder" targetRef="sendSms">
+  <conditionExpression>${notifyBySms} == true</conditionExpression>
+</sequenceFlow>
+<sequenceFlow sourceRef="routeOrder" targetRef="skipNotification" />
+```
+
+## Fork behavior
+
+1. For each outgoing flow **with** a condition: advance if condition is `true`
+2. For each outgoing flow **without** a condition: always advance
+3. If no flows matched: take the default flow (if configured)
+4. The engine records `activatedCount` for each downstream inclusive join it can reach via a 2-hop trace (fork → task → join), so the join knows how many tokens to wait for
+
+## Join behavior
+
+The inclusive join waits for `arrivals >= activatedCount` (the count stored at fork time), then advances and clears both counters.
+
+**Key difference from parallel join:** A parallel join always waits for a fixed number of branches (the number of incoming arcs). An inclusive join adapts to how many branches were actually activated.

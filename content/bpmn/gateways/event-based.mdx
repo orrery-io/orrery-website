@@ -1,0 +1,84 @@
+# Event-Based Gateway
+
+Waits for the **first** of several competing events (messages, signals, timers) and routes to its path. All other subscriptions are cancelled when the first event fires.
+
+export const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             targetNamespace="http://example.org/bpmn">
+  <message id="ResponseMsg" name="response.received" />
+  <process id="proc" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="waitGw" />
+    <eventBasedGateway id="waitGw" name="Wait" />
+    <sequenceFlow id="f2" sourceRef="waitGw" targetRef="msgCatch" />
+    <sequenceFlow id="f3" sourceRef="waitGw" targetRef="timerCatch" />
+    <intermediateCatchEvent id="msgCatch" name="Response">
+      <messageEventDefinition messageRef="ResponseMsg" />
+    </intermediateCatchEvent>
+    <intermediateCatchEvent id="timerCatch" name="Timeout">
+      <timerEventDefinition><timeDuration>PT10M</timeDuration></timerEventDefinition>
+    </intermediateCatchEvent>
+    <task id="handleResponse" name="Handle Response" />
+    <task id="handleTimeout" name="Handle Timeout" />
+    <endEvent id="end1" />
+    <endEvent id="end2" />
+    <sequenceFlow id="f4" sourceRef="msgCatch" targetRef="handleResponse" />
+    <sequenceFlow id="f5" sourceRef="timerCatch" targetRef="handleTimeout" />
+    <sequenceFlow id="f6" sourceRef="handleResponse" targetRef="end1" />
+    <sequenceFlow id="f7" sourceRef="handleTimeout" targetRef="end2" />
+  </process>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane bpmnElement="proc">
+      <bpmndi:BPMNShape bpmnElement="start"><dc:Bounds x="132" y="112" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="waitGw"><dc:Bounds x="225" y="105" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="233" y="160" width="34" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="msgCatch"><dc:Bounds x="335" y="76" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="322" y="117" width="62" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="timerCatch"><dc:Bounds x="335" y="188" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="324" y="229" width="58" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="handleResponse"><dc:Bounds x="430" y="56" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="handleTimeout"><dc:Bounds x="430" y="168" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="end1"><dc:Bounds x="590" y="76" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="end2"><dc:Bounds x="590" y="188" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="f1"><di:waypoint x="168" y="130" /><di:waypoint x="225" y="130" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f2"><di:waypoint x="250" y="105" /><di:waypoint x="250" y="94" /><di:waypoint x="335" y="94" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f3"><di:waypoint x="250" y="155" /><di:waypoint x="250" y="206" /><di:waypoint x="335" y="206" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f4"><di:waypoint x="371" y="94" /><di:waypoint x="430" y="96" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f5"><di:waypoint x="371" y="206" /><di:waypoint x="430" y="208" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f6"><di:waypoint x="530" y="96" /><di:waypoint x="590" y="94" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f7"><di:waypoint x="530" y="208" /><di:waypoint x="590" y="206" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>`;
+
+<BpmnViewer xml={xml} height={300} />
+
+```xml
+<eventBasedGateway id="waitForResponse" />
+<sequenceFlow sourceRef="waitForResponse" targetRef="msgCatch" />
+<sequenceFlow sourceRef="waitForResponse" targetRef="timerCatch" />
+
+<intermediateCatchEvent id="msgCatch">
+  <messageEventDefinition messageRef="ResponseMessage" />
+</intermediateCatchEvent>
+<intermediateCatchEvent id="timerCatch">
+  <timerEventDefinition><timeDuration>PT10M</timeDuration></timerEventDefinition>
+</intermediateCatchEvent>
+```
+
+## Execution behavior
+
+1. The engine forks a token to each outgoing catch event and creates subscriptions for all of them, grouped by a shared `event_gateway_group_id`
+2. When the first event fires, the server:
+   - Marks that subscription as consumed
+   - Deletes or marks all sibling subscriptions in the same group as consumed
+   - Cancels any sibling timers
+3. Execution continues only down the path of the winning event
+
+The XOR enforcement is server-side — the engine itself creates all subscriptions; the server cancels the losers.
+
+## Supported target event types
+
+- Message intermediate catch event
+- Signal intermediate catch event
+- Timer intermediate catch event

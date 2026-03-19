@@ -1,0 +1,106 @@
+# Subprocess
+
+export const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             xmlns:activiti="http://activiti.org/bpmn"
+             targetNamespace="http://example.org/bpmn">
+  <error id="FulfillErr" errorCode="FULFILLMENT_FAILED" />
+  <process id="proc" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="fulfillment" />
+    <subProcess id="fulfillment" name="Order Fulfillment">
+      <startEvent id="subStart" />
+      <sequenceFlow id="sf1" sourceRef="subStart" targetRef="reserve" />
+      <serviceTask id="reserve" name="Reserve Inventory"
+        activiti:type="external" activiti:topic="reserveInventory" />
+      <sequenceFlow id="sf2" sourceRef="reserve" targetRef="ship" />
+      <serviceTask id="ship" name="Ship Order"
+        activiti:type="external" activiti:topic="shipOrder" />
+      <sequenceFlow id="sf3" sourceRef="ship" targetRef="subEnd" />
+      <endEvent id="subEnd" />
+    </subProcess>
+    <boundaryEvent id="errBound" attachedToRef="fulfillment" cancelActivity="true">
+      <errorEventDefinition errorRef="FulfillErr" />
+    </boundaryEvent>
+    <sequenceFlow id="f2" sourceRef="fulfillment" targetRef="end" />
+    <sequenceFlow id="f3" sourceRef="errBound" targetRef="handleErr" />
+    <task id="handleErr" name="Handle Error" />
+    <endEvent id="end" />
+    <endEvent id="endErr" />
+    <sequenceFlow id="f4" sourceRef="handleErr" targetRef="endErr" />
+  </process>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane bpmnElement="proc">
+      <bpmndi:BPMNShape bpmnElement="start"><dc:Bounds x="112" y="122" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="fulfillment" isExpanded="true"><dc:Bounds x="200" y="60" width="360" height="160" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="subStart"><dc:Bounds x="232" y="122" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="reserve"><dc:Bounds x="310" y="100" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="ship"><dc:Bounds x="430" y="100" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="subEnd"><dc:Bounds x="512" y="122" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="errBound" isInterrupting="true"><dc:Bounds x="362" y="202" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="end"><dc:Bounds x="622" y="122" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="handleErr"><dc:Bounds x="362" y="300" width="100" height="60" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endErr"><dc:Bounds x="522" y="315" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="f1"><di:waypoint x="148" y="140" /><di:waypoint x="200" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sf1"><di:waypoint x="268" y="140" /><di:waypoint x="310" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sf2"><di:waypoint x="410" y="140" /><di:waypoint x="430" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sf3"><di:waypoint x="530" y="140" /><di:waypoint x="512" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f2"><di:waypoint x="560" y="140" /><di:waypoint x="622" y="140" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f3"><di:waypoint x="380" y="238" /><di:waypoint x="380" y="300" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f4"><di:waypoint x="462" y="330" /><di:waypoint x="522" y="333" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>`;
+
+<BpmnViewer xml={xml} height={400} />
+
+A subprocess embeds a complete BPMN flow inside a parent process. It has its own start event, end events, tasks, and gateways.
+
+```xml
+<subProcess id="orderFulfillment" name="Order Fulfillment">
+  <startEvent id="subStart" />
+  <serviceTask id="reserveInventory" activiti:topic="reserveInventory" />
+  <endEvent id="subEnd" />
+  <sequenceFlow sourceRef="subStart" targetRef="reserveInventory" />
+  <sequenceFlow sourceRef="reserveInventory" targetRef="subEnd" />
+</subProcess>
+```
+
+## Variable scoping
+
+Subprocesses share the parent instance's variable scope — there is no separate child scope. Variables written inside the subprocess are immediately visible to the parent and persist after the subprocess completes.
+
+## Execution behavior
+
+1. The engine creates a child engine initialized with the parent's current variables
+2. The child engine runs to completion (or pauses on a waiting element)
+3. When the child completes, its variables are merged back into the parent
+4. The parent token advances past the subprocess element
+
+If the child hits a waiting state (service task, timer, message), the child's active tokens are added to the parent's token set and stored in a subprocess frame stack. When the external event resolves, execution delegates back to the innermost subprocess frame.
+
+## Error handling
+
+If the subprocess fails (error end event or failing service task), the parent:
+
+1. Checks for an **error boundary event** on the subprocess — specific code match first, then catch-all
+2. If found: cancels remaining child tokens and routes to the boundary's outgoing flow
+3. If not found: marks the parent instance as `Failed` and propagates the error code upward
+
+```xml
+<boundaryEvent id="handleFulfillmentError" attachedToRef="orderFulfillment" cancelActivity="true">
+  <errorEventDefinition errorRef="FulfillmentError" />
+</boundaryEvent>
+```
+
+## Escalation handling
+
+Escalations propagate differently from errors:
+
+1. Check for an **escalation boundary event** on the subprocess — specific code first, then catch-all
+2. If found: route to boundary (interrupting) or fork (non-interrupting)
+3. If not found: check for an **escalation event subprocess** in the parent
+4. If neither: execution continues normally past the subprocess (escalations do not fail the process)

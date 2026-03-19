@@ -1,0 +1,62 @@
+# Link Events
+
+export const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             targetNamespace="http://example.org/bpmn">
+  <process id="proc" isExecutable="true">
+    <startEvent id="start" />
+    <sequenceFlow id="f1" sourceRef="start" targetRef="taskA" />
+    <task id="taskA" name="Section A" />
+    <sequenceFlow id="f2" sourceRef="taskA" targetRef="linkThrow" />
+    <intermediateThrowEvent id="linkThrow" name="SectionB">
+      <linkEventDefinition name="SectionB" />
+    </intermediateThrowEvent>
+    <intermediateCatchEvent id="linkCatch" name="SectionB">
+      <linkEventDefinition name="SectionB" />
+    </intermediateCatchEvent>
+    <sequenceFlow id="f3" sourceRef="linkCatch" targetRef="taskB" />
+    <task id="taskB" name="Section B" />
+    <sequenceFlow id="f4" sourceRef="taskB" targetRef="end" />
+    <endEvent id="end" />
+  </process>
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane bpmnElement="proc">
+      <bpmndi:BPMNShape bpmnElement="start"><dc:Bounds x="112" y="97" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="taskA"><dc:Bounds x="200" y="75" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="linkThrow"><dc:Bounds x="352" y="97" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="338" y="138" width="64" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="linkCatch"><dc:Bounds x="440" y="97" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="426" y="138" width="64" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="taskB"><dc:Bounds x="528" y="75" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="end"><dc:Bounds x="680" y="97" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="f1"><di:waypoint x="148" y="115" /><di:waypoint x="200" y="115" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f2"><di:waypoint x="300" y="115" /><di:waypoint x="352" y="115" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f3"><di:waypoint x="476" y="115" /><di:waypoint x="528" y="115" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="f4"><di:waypoint x="628" y="115" /><di:waypoint x="680" y="115" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>`;
+
+<BpmnViewer xml={xml} height={220} />
+
+Link events implement a GOTO jump within a single process level.
+
+```xml
+<!-- Throw: jumps from here... -->
+<intermediateThrowEvent id="linkThrow">
+  <linkEventDefinition name="SectionA" />
+</intermediateThrowEvent>
+
+<!-- Catch: ...to here -->
+<intermediateCatchEvent id="linkCatch">
+  <linkEventDefinition name="SectionA" />
+</intermediateCatchEvent>
+```
+
+When the engine reaches the link throw event it immediately advances to the matching link catch event by name. No sequence flows are traversed between them, and no conditions are evaluated.
+
+**Constraints:**
+- Link names are global within a process level — links do not cross subprocess boundaries
+- Each throw must have exactly one matching catch with the same name
+- The link catch event is a pass-through: the engine immediately continues to its outgoing flow

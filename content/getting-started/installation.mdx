@@ -1,0 +1,25 @@
+# Installation
+
+## Docker (recommended)
+
+```bash
+docker run -e DATABASE_URL=postgres://... -p 8080:8080 ghcr.io/orrery-io/orrery
+```
+
+## From source
+
+```bash
+git clone https://github.com/orrery-io/orrery
+cd orrery
+cargo build --release
+./target/release/orrery-server
+```
+
+## Configuration
+
+| Environment Variable | Default | Description |
+|---|---|---|
+| `DATABASE_URL` | required | PostgreSQL connection string |
+| `PORT` | `8080` | HTTP server port |
+
+> **Note:** Full configuration reference coming soon.
