@@ -1,17 +1,26 @@
 {
   "name": "orrery-website",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "scripts": {
-    "dev": "bun run --filter=@orrery/marketing dev & bun run --filter=@orrery/docs dev",
-    "dev:marketing": "bun run --filter=@orrery/marketing dev",
-    "dev:docs": "bun run --filter=@orrery/docs dev",
-    "build": "bun run --filter='*' build"
+    "dev": "next dev",
+    "build": "next build && pagefind --site .next/server/app --output-path public/_pagefind",
+    "start": "next start"
+  },
+  "dependencies": {
+    "bpmn-js": "^18.13.1",
+    "next": "^16.2.0",
+    "nextra": "^4.6.1",
+    "nextra-theme-docs": "^4.6.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
   },
   "devDependencies": {
-    "pagefind": "^1.4.0"
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "pagefind": "^1.4.0",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^5.9.3"
   }
 }
