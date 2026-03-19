@@ -2,8 +2,13 @@ import { Footer, Layout, Navbar } from "nextra-theme-docs";
 import { Head } from "nextra/components";
 import { getPageMap } from "nextra/page-map";
 import { Logo } from "@/components/Logo";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "nextra-theme-docs/style.css";
+
+export const metadata: Metadata = {
+  title: { template: "%s | Orrery Docs", default: "Orrery Docs" },
+};
 
 const GITHUB_URL = process.env.GITHUB_URL!;
 
