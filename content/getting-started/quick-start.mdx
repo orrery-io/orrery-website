@@ -1,0 +1,42 @@
+# Quick Start
+
+This guide walks through deploying a simple BPMN process and writing a worker.
+
+## 1. Start the server
+
+```bash
+docker compose up -d
+```
+
+## 2. Deploy a BPMN process
+
+```bash
+curl -X POST http://localhost:8080/api/definitions \
+  -F "file=@process.bpmn"
+```
+
+## 3. Start a process instance
+
+```bash
+curl -X POST http://localhost:8080/api/instances \
+  -H "Content-Type: application/json" \
+  -d '{"processDefinitionKey": "myProcess", "variables": {}}'
+```
+
+## 4. Write a worker
+
+```ts
+import { OrreryWorker } from "@orrery/sdk";
+
+const worker = new OrreryWorker({
+  baseUrl: "http://localhost:8080",
+  topic: "myTask",
+  handler: async (task) => {
+    await task.complete({ result: "done" });
+  },
+});
+
+worker.start();
+```
+
+> **Full SDK docs:** [TypeScript SDK](/documentation/sdks/typescript)

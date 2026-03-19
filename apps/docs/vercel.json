@@ -1,6 +1,0 @@
-{
-  "framework": "nextjs",
-  "buildCommand": "cd ../.. && bun run build --filter=@orrery/docs",
-  "installCommand": "cd ../.. && bun install",
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./"
-}
