@@ -33,11 +33,11 @@ export const xml = `<?xml version="1.0" encoding="UTF-8"?>
 
 <BpmnViewer xml={xml} height={220} />
 
-A receive task waits for a named message — identical in behavior to a [message intermediate catch event](/bpmn/events/messages#message-intermediate-catch-event), but rendered as a task shape in the diagram.
+A receive task waits for a named message — identical in behavior to a [message intermediate catch event](/documentation/bpmn/events/messages#message-intermediate-catch-event), but rendered as a task shape in the diagram.
 
 ```xml
 <receiveTask id="waitForApproval" name="Wait for Approval"
   messageRef="ApprovalMessage" />
 ```
 
-See [message correlation](/bpmn/events/messages#message-correlation) for the full matching algorithm.
+See [message correlation](/documentation/bpmn/events/messages#message-correlation) for the full matching algorithm.
