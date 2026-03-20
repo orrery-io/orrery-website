@@ -22,7 +22,7 @@ bun add @orrery/sdk
 ```ts
 import { createClient } from "@orrery/sdk";
 
-const client = createClient({ baseUrl: "http://localhost:8080" });
+const client = createClient({ baseUrl: "http://localhost:3000" });
 // baseUrl defaults to ORRERY_URL env var, then "http://localhost:3000"
 ```
 
@@ -82,7 +82,7 @@ interface ExternalTask {
 ```ts
 import { createWorker, subscribe, runWorker } from "@orrery/sdk";
 
-let worker = createWorker({ baseUrl: "http://localhost:8080" });
+let worker = createWorker({ baseUrl: "http://localhost:3000" });
 
 worker = subscribe(
   worker,
@@ -103,14 +103,14 @@ await runWorker(worker); // blocks until SIGINT / SIGTERM
 ```ts
 const worker = createWorker({
   workerId: "payment-worker-1",   // default: "worker-{timestamp}"
-  baseUrl: "http://localhost:8080",
+  baseUrl: "http://localhost:3000",
   lockDurationMs: 60000,          // default: 30 000
   requestTimeoutMs: 20000,        // default: 20 000
   concurrency: 8,                 // default: 4
 });
 ```
 
-If `baseUrl` is omitted, the worker reads `ORRERY_URL` from the environment and falls back to `http://localhost:8080`.
+If `baseUrl` is omitted, the worker reads `ORRERY_URL` from the environment and falls back to `http://localhost:3000`.
 
 ### Multiple topics
 

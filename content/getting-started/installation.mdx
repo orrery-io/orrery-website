@@ -2,9 +2,19 @@
 
 ## Docker (recommended)
 
+Orrery is published to the GitHub Container Registry. Pull the latest image:
+
 ```bash
-docker run -e DATABASE_URL=postgres://... -p 8080:8080 ghcr.io/orrery-io/orrery
+docker pull ghcr.io/orrery-io/orrery:latest
 ```
+
+Run with a PostgreSQL connection string:
+
+```bash
+docker run -e DATABASE_URL=postgres://... -p 3000:3000 ghcr.io/orrery-io/orrery
+```
+
+All published versions are listed at [ghcr.io/orrery-io/orrery](https://github.com/orrery-io/orrery/pkgs/container/orrery).
 
 ## From source
 
@@ -20,6 +30,6 @@ cargo build --release
 | Environment Variable | Default | Description |
 |---|---|---|
 | `DATABASE_URL` | required | PostgreSQL connection string |
-| `PORT` | `8080` | HTTP server port |
+| `PORT` | `3000` | HTTP server port |
 
 > **Note:** Full configuration reference coming soon.

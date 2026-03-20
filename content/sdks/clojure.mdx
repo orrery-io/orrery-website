@@ -25,9 +25,9 @@ The Clojure SDK ships as two namespaces in the `io.orrery/orrery-sdk` library:
 (require '[orrery.client :as oc])
 
 (def c (oc/client))
-;; base-url defaults to $ORRERY_URL env var or "http://localhost:8080"
+;; base-url defaults to $ORRERY_URL env var or "http://localhost:3000"
 
-(def c (oc/client {:base-url "http://localhost:8080"}))
+(def c (oc/client {:base-url "http://localhost:3000"}))
 ```
 
 ### Functions
@@ -83,7 +83,7 @@ Errors are thrown as `ExceptionInfo` with message `"HTTP {status}"` and `:body` 
 ```clojure
 (require '[orrery.worker :as ow])
 
-(def w (ow/worker {:base-url "http://localhost:8080"}))
+(def w (ow/worker {:base-url "http://localhost:3000"}))
 
 (ow/subscribe w
   {:topic "validatePayment"}
@@ -101,14 +101,14 @@ Errors are thrown as `ExceptionInfo` with message `"HTTP {status}"` and `:body` 
 ```clojure
 (ow/worker
   {:worker-id          "payment-worker-1"  ; default: "worker-{timestamp}"
-   :base-url           "http://localhost:8080"
+   :base-url           "http://localhost:3000"
    :lock-duration-ms   60000               ; default: 30 000
    :request-timeout-ms 20000               ; default: 20 000
    :concurrency        8                   ; default: 4
    })
 ```
 
-If `:base-url` is omitted, the worker reads `$ORRERY_URL` from the environment and falls back to `http://localhost:8080`.
+If `:base-url` is omitted, the worker reads `$ORRERY_URL` from the environment and falls back to `http://localhost:3000`.
 
 ### Multiple topics
 

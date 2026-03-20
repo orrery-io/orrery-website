@@ -6,6 +6,7 @@ dist/
 .vercel/
 *.tsbuildinfo
 CLAUDE.md
+.claude/
 public/_pagefind
 /docs/
 memory/

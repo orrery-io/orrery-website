@@ -24,7 +24,7 @@ orrery-worker  = { git = "https://github.com/orrery-io/orrery" }
 ```rust
 use orrery_client::OrreryClient;
 
-let client = OrreryClient::new("http://localhost:8080");
+let client = OrreryClient::new("http://localhost:3000");
 // Do not include /v1 — the client appends it automatically.
 ```
 
@@ -35,7 +35,7 @@ use orrery_client::{OrreryClient, StartInstanceRequest};
 use std::collections::HashMap;
 use serde_json::json;
 
-let client = OrreryClient::new("http://localhost:8080");
+let client = OrreryClient::new("http://localhost:3000");
 
 let instance = client.start_instance(StartInstanceRequest {
     process_definition_id: "order-process:1".into(),
@@ -144,7 +144,7 @@ use orrery_worker::Worker;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    Worker::new("http://localhost:8080")
+    Worker::new("http://localhost:3000")
         .subscribe(
             "validatePayment",
             vec![],  // process definition IDs to filter on; empty = any definition
@@ -165,7 +165,7 @@ async fn main() -> anyhow::Result<()> {
 ```rust
 use std::time::Duration;
 
-Worker::new("http://localhost:8080")
+Worker::new("http://localhost:3000")
     .worker_id("payment-worker-1")          // default: auto-generated UUID
     .lock_duration(Duration::from_secs(60)) // default: 30 s
     .concurrency(8)                         // default: 4
@@ -181,7 +181,7 @@ If `base_url` is empty, the worker reads `ORRERY_URL` from the environment and f
 The second argument to `.subscribe()` is a list of process definition IDs to filter on. Pass an empty `vec![]` to receive tasks from any process definition.
 
 ```rust
-Worker::new("http://localhost:8080")
+Worker::new("http://localhost:3000")
     .subscribe("validatePayment", vec![], |task| async move {  // any definition
         Ok(serde_json::json!({ "valid": true }))
     })
@@ -200,7 +200,7 @@ Worker::new("http://localhost:8080")
 Return `Err(anyhow::Error)` to fail the task. The error message is stored and the task is retried according to its retry configuration.
 
 ```rust
-Worker::new("http://localhost:8080")
+Worker::new("http://localhost:3000")
     .subscribe("chargeCard", vec![], |task| async move {
         let amount = task.variables["amount"]
             .as_f64()
@@ -223,7 +223,7 @@ Worker::new("http://localhost:8080")
 ```rust
 use orrery_worker::WorkerFactory;
 
-WorkerFactory::new("http://localhost:8080")
+WorkerFactory::new("http://localhost:3000")
     .register("validatePayment", "order-process", handlers::validate_payment::handle)
     .register("chargeCard",      "order-process", handlers::charge_card::handle)
     .register("sendReceipt",     "order-process", handlers::send_receipt::handle)
@@ -239,7 +239,7 @@ The factory groups registrations by topic, builds a single `Worker` with one `su
 The handler receives an `ExternalTaskResponse` with the full task context:
 
 ```rust
-Worker::new("http://localhost:8080")
+Worker::new("http://localhost:3000")
     .subscribe("processOrder", vec![], |task| async move {
         println!("task:        {}", task.id);
         println!("topic:       {}", task.topic);

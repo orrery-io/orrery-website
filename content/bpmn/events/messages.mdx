@@ -90,7 +90,7 @@ At most one subscription is matched per tier (ambiguous matches return HTTP 409)
 ## Sending a message
 
 ```bash
-curl -X POST http://localhost:8080/api/messages \
+curl -X POST http://localhost:3000/api/messages \
   -H "Content-Type: application/json" \
   -d '{
     "messageName": "payment.received",

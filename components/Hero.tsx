@@ -5,15 +5,7 @@ export function Hero() {
   return (
     <section className="pt-32 pb-20 px-6 text-center max-w-4xl mx-auto">
       <div className="flex flex-col items-center mb-8">
-        <img src="/orrery-icon.svg" alt="Orrery" className="w-40 h-40" />
-        <div className="flex flex-col items-center gap-1">
-          <span style={{ fontWeight: 300, fontSize: 36, letterSpacing: "12px", textTransform: "uppercase" }}>
-            Orrery
-          </span>
-          <span style={{ fontFamily: "var(--font-mono)", fontWeight: 300, fontSize: 9, letterSpacing: "4px", textTransform: "uppercase", opacity: 0.45 }}>
-            Workflow Engine
-          </span>
-        </div>
+        <img src="/orrery-icon.svg" alt="Orrery" className="w-40 h-40" />{" "}
       </div>
       <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 text-sm font-medium mb-6">
         Open Source · Apache 2.0

@@ -2,34 +2,53 @@
 
 This guide walks through deploying a simple BPMN process and writing a worker.
 
-## 1. Start the server
+## 1. Pull the image
+
+Orrery is available as a Docker image from the GitHub Container Registry:
 
 ```bash
-docker compose up -d
+docker pull ghcr.io/orrery-io/orrery:latest
 ```
 
-## 2. Deploy a BPMN process
+Browse all available tags at [ghcr.io/orrery-io/orrery](https://github.com/orrery-io/orrery/pkgs/container/orrery).
+
+## 2. Start the server
+
+Orrery requires a PostgreSQL database. Provision one and pass the connection details as environment variables:
 
 ```bash
-curl -X POST http://localhost:8080/api/definitions \
+docker run \
+  -e DATABASE_URL=postgres://orrery:orrery@localhost:5433/orrery \
+  -e ORRERY_HOST=0.0.0.0 \
+  -e ORRERY_PORT=3000 \
+  -p 3000:3000 \
+  ghcr.io/orrery-io/orrery:latest
+```
+
+Once running, the Cockpit is available at `http://localhost:3000` and the API explorer at `http://localhost:3000/docs`.
+
+## 3. Deploy a BPMN process
+
+```bash
+curl -X POST http://localhost:3000/api/definitions \
   -F "file=@process.bpmn"
 ```
 
-## 3. Start a process instance
+## 4. Start a process instance
 
 ```bash
-curl -X POST http://localhost:8080/api/instances \
+curl -X POST http://localhost:3000/api/instances \
   -H "Content-Type: application/json" \
   -d '{"processDefinitionKey": "myProcess", "variables": {}}'
 ```
 
-## 4. Write a worker
+## 5. Write a worker
 
 ```ts
 import { OrreryWorker } from "@orrery/sdk";
 
 const worker = new OrreryWorker({
-  baseUrl: "http://localhost:8080",
+  baseUrl: "http://localhost:3000",
   topic: "myTask",
   handler: async (task) => {
     await task.complete({ result: "done" });
@@ -40,3 +59,8 @@ worker.start();
 ```
 
 > **Full SDK docs:** [TypeScript SDK](/documentation/sdks/typescript)
+
+## What's next
+
+- **Cockpit** — open `http://localhost:3000` to access the built-in web UI for monitoring processes, inspecting instances, and viewing BPMN diagrams.
+- **API docs** — interactive API explorer (powered by [Scalar](https://scalar.com)) is available at `http://localhost:3000/docs`. Browse all endpoints, try requests, and download the OpenAPI spec.
